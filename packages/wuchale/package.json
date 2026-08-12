@@ -1,6 +1,6 @@
 {
 	"name": "@fernando.mema/sv-wuchale",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js",
@@ -9,6 +9,15 @@
 	"scripts": {
 		"build": "tsdown",
 		"build:watch": "tsdown --watch"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fernandomema/sv-addons.git",
+		"directory": "packages/wuchale"
+	},
+	"homepage": "https://github.com/fernandomema/sv-addons/tree/main/packages/wuchale#readme",
+	"bugs": {
+		"url": "https://github.com/fernandomema/sv-addons/issues"
 	},
 	"publishConfig": {
 		"access": "public"

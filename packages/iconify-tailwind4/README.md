@@ -6,7 +6,7 @@
 
 <br />
 <div align="center">
-  <h3>@fernandomema/sv-iconify-tailwind4</h3>
+  <h3>@fernando.mema/sv-iconify-tailwind4</h3>
   <p>
     Iconify icons integration for Tailwind CSS v4 in SvelteKit
   </p>
@@ -143,8 +143,8 @@ Project Link: [https://github.com/fernandomema/sv-addons](https://github.com/fer
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[npm-version-shield]: https://img.shields.io/npm/v/@fernandomema/sv-iconify-tailwind4.svg?style=for-the-badge
-[npm-version-url]: https://www.npmjs.com/package/@fernandomema/sv-iconify-tailwind4
+[npm-version-shield]: https://img.shields.io/npm/v/@fernando.mema/sv-iconify-tailwind4.svg?style=for-the-badge
+[npm-version-url]: https://www.npmjs.com/package/@fernando.mema/sv-iconify-tailwind4
 [license-shield]: https://img.shields.io/github/license/fernandomema/sv-addons.svg?style=for-the-badge
 [license-url]: https://github.com/fernandomema/sv-addons/blob/master/LICENSE.txt
 [svelte-cli-shield]: https://img.shields.io/badge/Svelte%20CLI-FF3E00?style=for-the-badge&logo=svelte&logoColor=white

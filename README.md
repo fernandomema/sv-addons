@@ -87,11 +87,11 @@ Each addon follows the official [community addon specification](https://svelte.d
 
 | Addon | Description | Install |
 |-------|-------------|---------|
-| `@fernandomema/sv-prisma` | Prisma ORM setup with PostgreSQL/MySQL/SQLite and driver adapter support | `npx sv add @fernandomema/sv-prisma` |
-| `@fernandomema/sv-better-auth-prisma` | Better Auth with Prisma adapter, admin plugin, and demo pages | `npx sv add @fernandomema/sv-better-auth-prisma` |
-| `@fernandomema/sv-wuchale` | i18n with AI-powered translations via OpenCode (DeepSeek V4 Flash) | `npx sv add @fernandomema/sv-wuchale` |
-| `@fernandomema/sv-sentry` | Error tracking with Sentry (browser + server + session replays) | `npx sv add @fernandomema/sv-sentry` |
-| `@fernandomema/sv-iconify-tailwind4` | Iconify icons integration for Tailwind CSS v4 | `npx sv add @fernandomema/sv-iconify-tailwind4` |
+| `@fernando.mema/sv-prisma` | Prisma ORM setup with PostgreSQL/MySQL/SQLite and driver adapter support | `npx sv add @fernando.mema/sv-prisma` |
+| `@fernando.mema/sv-better-auth-prisma` | Better Auth with Prisma adapter, admin plugin, and demo pages | `npx sv add @fernando.mema/sv-better-auth-prisma` |
+| `@fernando.mema/sv-wuchale` | i18n with AI-powered translations via OpenCode (DeepSeek V4 Flash) | `npx sv add @fernando.mema/sv-wuchale` |
+| `@fernando.mema/sv-sentry` | Error tracking with Sentry (browser + server + session replays) | `npx sv add @fernando.mema/sv-sentry` |
+| `@fernando.mema/sv-iconify-tailwind4` | Iconify icons integration for Tailwind CSS v4 | `npx sv add @fernando.mema/sv-iconify-tailwind4` |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -116,11 +116,11 @@ npx sv create my-app --template minimal --types ts
 cd my-app
 
 # Add any combination of addons
-npx sv add @fernandomema/sv-prisma
-npx sv add @fernandomema/sv-better-auth-prisma
-npx sv add @fernandomema/sv-wuchale
-npx sv add @fernandomema/sv-sentry
-npx sv add @fernandomema/sv-iconify-tailwind4
+npx sv add @fernando.mema/sv-prisma
+npx sv add @fernando.mema/sv-better-auth-prisma
+npx sv add @fernando.mema/sv-wuchale
+npx sv add @fernando.mema/sv-sentry
+npx sv add @fernando.mema/sv-iconify-tailwind4
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -132,18 +132,18 @@ Each addon is interactive and will ask you configuration questions during instal
 
 ```bash
 # Add Prisma with PostgreSQL
-npx sv add @fernandomema/sv-prisma
+npx sv add @fernando.mema/sv-prisma
 # ? Which database dialect? PostgreSQL
 # ? Which Prisma adapter? @prisma/adapter-pg
 # ? Where should the Prisma client be generated? src/lib/generated/prisma
 
 # Add Better Auth with Prisma (requires prisma addon first)
-npx sv add @fernandomema/sv-better-auth-prisma
+npx sv add @fernando.mema/sv-better-auth-prisma
 # ? Include the Better Auth admin plugin? Yes
 # ? Which demo would you like to include? Email & Password
 
 # Add Wuchale i18n with AI translations
-npx sv add @fernandomema/sv-wuchale
+npx sv add @fernando.mema/sv-wuchale
 # ? Which locales? en, es
 # ? Which adapters? Svelte
 # ? Enable AI-powered translation? Yes
