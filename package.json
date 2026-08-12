@@ -1,0 +1,29 @@
+{
+	"name": "sv-addons",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build": "pnpm -r run build",
+		"build:watch": "pnpm -r run build:watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "prettier --check .",
+		"format": "prettier --write ."
+	},
+	"devDependencies": {
+		"@sveltejs/sv-utils": "^0.3.3",
+		"prettier": "^3.4.0",
+		"tsdown": "^0.11.0",
+		"typescript": "^5.7.0",
+		"vitest": "^3.0.0"
+	},
+	"peerDependencies": {
+		"sv": ">=0.13.0"
+	},
+	"peerDependenciesMeta": {
+		"sv": {
+			"optional": false
+		}
+	}
+}

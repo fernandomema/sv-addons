@@ -1,0 +1,21 @@
+{
+	"name": "@fernando.mema/sv-better-auth-prisma",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./sv": "./dist/index.js"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:watch": "tsdown --watch"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": ["sv-add", "svelte", "sveltekit", "better-auth", "prisma", "authentication"],
+	"peerDependencies": {
+		"sv": "^0.13.0"
+	},
+	"dependencies": {}
+}
