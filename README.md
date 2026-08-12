@@ -12,7 +12,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/fernandomema/sv-addons">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://socialify.git.ci/fernandomema/sv-addons/image?font=KoHo&language=1&name=1&owner=1&stargazers=1&theme=Light" alt="SV Addons" width="640" height="320">
   </a>
 
   <h3 align="center">SV Addons</h3>
