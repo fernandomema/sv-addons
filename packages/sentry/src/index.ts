@@ -18,6 +18,30 @@ const options = defineAddonOptions()
 		default: false,
 		condition: ({ browser }) => browser === true
 	})
+	.add('dsn', {
+		question: 'Sentry DSN (paste from Sentry → Project Settings → Client Keys, leave empty to fill later)',
+		type: 'string',
+		default: '',
+		placeholder: 'https://...@o123.ingest.sentry.io/456'
+	})
+	.add('authToken', {
+		question: 'Sentry auth token for source maps (leave empty to fill later)',
+		type: 'string',
+		default: '',
+		placeholder: 'sntrys_...'
+	})
+	.add('org', {
+		question: 'Sentry organization slug (leave empty to fill later)',
+		type: 'string',
+		default: '',
+		placeholder: 'my-org'
+	})
+	.add('project', {
+		question: 'Sentry project slug (leave empty to fill later)',
+		type: 'string',
+		default: '',
+		placeholder: 'my-project'
+	})
 	.build();
 
 export default defineAddon({
@@ -55,8 +79,8 @@ export default defineAddon({
 			sv.dependency('@sentry/sveltekit', '^8.0.0');
 		}
 
-		sv.file('.env', generateEnv(false));
-		sv.file('.env.example', generateEnv(true));
+		sv.file('.env', generateEnv(false, options));
+		sv.file('.env.example', generateEnv(true, options));
 
 		if (options.browser) {
 			sv.file(
@@ -70,7 +94,7 @@ export default defineAddon({
 							dsn: import.meta.env.PUBLIC_SENTRY_DSN,
 							tracesSampleRate: 0.1,
 							replaysSessionSampleRate: 0.1,
-							replaysOnErrorSampleRate: 1.0${options.replays ? `,Integrations: [\n\t\t\tSentry.replayIntegration(),\n\t\t]` : ''}
+							replaysOnErrorSampleRate: 1.0${options.replays ? ',\n\t\t\tintegrations: [Sentry.replayIntegration()]' : ''}
 						});
 					`;
 				})
@@ -161,40 +185,6 @@ export default defineAddon({
 			})
 		);
 
-		if (options.server) {
-			sv.file(
-				`sentry.client.config.${language}`,
-				transforms.text(({ content }) => {
-					if (content) return false;
-					return dedent`
-						import * as Sentry from '@sentry/sveltekit';
-
-						Sentry.init({
-							dsn: import.meta.env.PUBLIC_SENTRY_DSN,
-							tracesSampleRate: 0.1,
-							replaysSessionSampleRate: 0.1,
-							replaysOnErrorSampleRate: 1.0
-						});
-					`;
-				})
-			);
-
-			sv.file(
-				`sentry.server.config.${language}`,
-				transforms.text(({ content }) => {
-					if (content) return false;
-					return dedent`
-						import * as Sentry from '@sentry/sveltekit';
-
-						Sentry.init({
-							dsn: import.meta.env.PUBLIC_SENTRY_DSN,
-							tracesSampleRate: 0.1
-						});
-					`;
-				})
-			);
-		}
-
 		sv.file(
 			file.package,
 			transforms.json(({ data, json }) => {
@@ -206,23 +196,54 @@ export default defineAddon({
 			})
 		);
 	},
-	nextSteps: ({ options, packageManager }) => {
-		const steps = [
-			`Set ${color.env('PUBLIC_SENTRY_DSN')} in ${color.path('.env')}`,
-			`Set ${color.env('SENTRY_AUTH_TOKEN')}, ${color.env('SENTRY_ORG')}, and ${color.env('SENTRY_PROJECT')} in ${color.path('.env')}`
-		];
-		if (options.replays) {
-			steps.push(`Session Replays are enabled - check Sentry dashboard for recordings`);
+	nextSteps: ({ options }) => {
+		const missing: string[] = [];
+		if (!options.dsn) missing.push(color.env('PUBLIC_SENTRY_DSN'));
+		if (!options.authToken) missing.push(color.env('SENTRY_AUTH_TOKEN'));
+		if (!options.org) missing.push(color.env('SENTRY_ORG'));
+		if (!options.project) missing.push(color.env('SENTRY_PROJECT'));
+
+		const steps: string[] = [];
+		if (missing.length > 0) {
+			steps.push(`Fill in ${missing.join(', ')} in ${color.path('.env')}`);
+		} else {
+			steps.push('Sentry env vars are already set. Restart your dev server to pick them up.');
 		}
-		steps.push(`Run ${color.command('npm run sentry:sourcemaps')} to upload source maps after building`);
+		if (options.replays) {
+			steps.push('Session Replays are enabled - check the Sentry dashboard for recordings');
+		}
+		steps.push(
+			`Run ${color.command('npm run sentry:sourcemaps')} to upload source maps after building`
+		);
 		return steps;
 	}
 });
 
-type GenerateEnv = (isExample: boolean) => (content: string) => string;
-const generateEnv: GenerateEnv = (isExample) => (content) => {
+type GenerateEnv = (
+	isExample: boolean,
+	options: { dsn: string; authToken: string; org: string; project: string }
+) => (content: string) => string;
+const generateEnv: GenerateEnv = (isExample, options) => (content) => {
 	const text = content || '';
 	const lines = text.split('\n');
+
+	// In .env (real values) the user-provided literal is used; in .env.example we always
+	// emit empty double-quoted placeholders so the file is never a leak of a real token.
+	const valueFor = (
+		key: 'PUBLIC_SENTRY_DSN' | 'SENTRY_AUTH_TOKEN' | 'SENTRY_ORG' | 'SENTRY_PROJECT'
+	) => {
+		if (isExample) return '""';
+		switch (key) {
+			case 'PUBLIC_SENTRY_DSN':
+				return options.dsn ? `"${options.dsn}"` : '""';
+			case 'SENTRY_AUTH_TOKEN':
+				return options.authToken ? `"${options.authToken}"` : '""';
+			case 'SENTRY_ORG':
+				return options.org || '""';
+			case 'SENTRY_PROJECT':
+				return options.project || '""';
+		}
+	};
 
 	const upsert = (key: string, value: string, comment?: string) => {
 		const idx = lines.findIndex((l) => l.startsWith(`${key}=`));
@@ -232,10 +253,10 @@ const generateEnv: GenerateEnv = (isExample) => (content) => {
 		}
 	};
 
-	upsert('PUBLIC_SENTRY_DSN', isExample ? '""' : '""', 'Sentry DSN');
-	upsert('SENTRY_AUTH_TOKEN', '""', 'Sentry auth token for source maps');
-	upsert('SENTRY_ORG', '""', 'Sentry organization slug');
-	upsert('SENTRY_PROJECT', '""', 'Sentry project slug');
+	upsert('PUBLIC_SENTRY_DSN', valueFor('PUBLIC_SENTRY_DSN'), 'Sentry DSN');
+	upsert('SENTRY_AUTH_TOKEN', valueFor('SENTRY_AUTH_TOKEN'), 'Sentry auth token for source maps');
+	upsert('SENTRY_ORG', valueFor('SENTRY_ORG'), 'Sentry organization slug');
+	upsert('SENTRY_PROJECT', valueFor('SENTRY_PROJECT'), 'Sentry project slug');
 
 	return lines.join('\n');
 };

@@ -47,7 +47,13 @@ npx sv add @fernandomema/sv-sentry
 |--------|------|---------|-------------|
 | `browser` | boolean | `true` | Enable Sentry for browser (client-side) |
 | `server` | boolean | `true` | Enable Sentry for server (server-side) |
-| `replays` | boolean | `false` | Enable Session Replays (browser only) |
+| `replays` | boolean | `false` | Enable Session Replays (browser only, only asked when `browser` is on) |
+| `dsn` | string | `''` | Sentry DSN for `PUBLIC_SENTRY_DSN`. Press Enter to skip and fill later. |
+| `authToken` | string | `''` | Sentry auth token for source maps (`SENTRY_AUTH_TOKEN`). Press Enter to skip. |
+| `org` | string | `''` | Sentry organization slug (`SENTRY_ORG`). Press Enter to skip. |
+| `project` | string | `''` | Sentry project slug (`SENTRY_PROJECT`). Press Enter to skip. |
+
+If you leave the four env options empty, the addon still creates the `.env` / `.env.example` entries with `""` placeholders so you can fill them in afterwards. If you provide values during install, they are written as literal values into `.env` (the `.env.example` file always keeps empty placeholders, never your real tokens).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -58,20 +64,18 @@ npx sv add @fernandomema/sv-sentry
 
 | File | Purpose |
 |------|---------|
-| `src/lib/sentry.client.ts` | Browser-side Sentry initialization |
-| `src/lib/sentry.server.ts` | Server-side Sentry initialization |
-| `sentry.client.config.ts` | Client config (if server enabled) |
-| `sentry.server.config.ts` | Server config (if server enabled) |
+| `src/lib/sentry.client.ts` | Browser-side Sentry initialization (only when `browser` is on) |
+| `src/lib/sentry.server.ts` | Server-side Sentry initialization (only when `server` is on) |
 
 ### Files Modified
 
 | File | Changes |
 |------|---------|
-| `.env` | Adds `PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` |
-| `.env.example` | Adds environment variable templates |
-| `src/hooks.server.ts` | Adds Sentry server handle |
-| `src/hooks.client.ts` | Adds client-side Sentry import |
-| `vite.config.ts` | Adds Sentry Vite plugin (if server enabled) |
+| `.env` | Adds `PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`. Skipped values are written as `""`. |
+| `.env.example` | Adds the same keys, always with `""` placeholders (never your real tokens). |
+| `src/hooks.server.ts` | Adds Sentry server handle (only when `server` is on) |
+| `src/hooks.client.ts` | Adds client-side Sentry import (only when `browser` is on) |
+| `vite.config.ts` | Adds Sentry Vite plugin (only when `server` is on) |
 | `package.json` | Adds `sentry:sourcemaps` script |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -91,12 +95,11 @@ npx sv add @fernandomema/sv-sentry
 <!-- NEXT STEPS -->
 ## Next Steps
 
-After installation:
+After installation the addon's `nextSteps` output tells you exactly what to do. In short:
 
-1. Set `PUBLIC_SENTRY_DSN` in `.env`
-2. Set `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in `.env`
-3. Run `npm run sentry:sourcemaps` to upload source maps after building
-4. If Session Replays enabled, check Sentry dashboard for recordings
+1. Fill any empty env placeholders in `.env` (`PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`). If you skipped them during install they are written as `""` placeholders so nothing is broken — they just need values before Sentry can talk to your project.
+2. Run `npm run sentry:sourcemaps` to upload source maps after building.
+3. If Session Replays are enabled, check the Sentry dashboard for recordings.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

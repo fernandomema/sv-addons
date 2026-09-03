@@ -2,7 +2,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
-		include: ['packages/*/tests/**/*.test.{js,ts}'],
-		globalSetup: ['tests/setup/global.js']
+		include: ['packages/*/tests/**/*.test.{js,ts}']
 	}
 });
