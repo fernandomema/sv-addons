@@ -92,6 +92,7 @@ Each addon follows the official [community addon specification](https://svelte.d
 | `@fernando.mema/sv-wuchale` | i18n with AI-powered translations via OpenCode (DeepSeek V4 Flash) | `npx sv add @fernando.mema/sv-wuchale` |
 | `@fernando.mema/sv-sentry` | Error tracking with Sentry (browser + server + session replays) | `npx sv add @fernando.mema/sv-sentry` |
 | `@fernando.mema/sv-iconify-tailwind4` | Iconify icons integration for Tailwind CSS v4 | `npx sv add @fernando.mema/sv-iconify-tailwind4` |
+| `@fernando.mema/sv-umami` | Privacy-friendly analytics with Umami (page views + custom events + server-side tracking) | `npx sv add @fernando.mema/sv-umami` |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -121,6 +122,7 @@ npx sv add @fernando.mema/sv-better-auth-prisma
 npx sv add @fernando.mema/sv-wuchale
 npx sv add @fernando.mema/sv-sentry
 npx sv add @fernando.mema/sv-iconify-tailwind4
+npx sv add @fernando.mema/sv-umami
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
