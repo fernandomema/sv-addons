@@ -151,35 +151,46 @@ export default defineAddon({
 					}
 
 					/**
-					 * Svelte action that tracks clicks on any element with a
-					 * \`data-umami-event\` attribute (and optional \`data-umami-event-{key}\` payloads).
+					 * Svelte action that wires an element to Umami event tracking.
+					 * Pass the event name and optional payload as an object — the action
+					 * applies the corresponding \`data-umami-event\` / \`data-umami-event-{key}\`
+					 * attributes on mount and forwards click events to \`track()\`.
 					 *
 					 * @example
-					 *   <button use:trackByAttr>Click me</button>
-					 *   <button use:trackByAttr={{ eventName: 'signup', data: { plan: 'pro' } }}>Sign up</button>
+					 *   <button use:trackByAttr={{ event: 'cta-click' }}>Click me</button>
+					 *   <button use:trackByAttr={{ event: 'pricing-cta', data: { plan: 'pro', source: 'hero' } }}>Sign up</button>
 					 */
 					export function trackByAttr(
 						node: HTMLElement,
-						options: { eventName?: string; data?: UmamiEventData } = {}
+						options: { event: string; data?: UmamiEventData } = { event: '' }
 					) {
-						const handle = (e: Event) => {
-							if (options.eventName) {
-								track(options.eventName, options.data);
-								return;
+						function applyOptions(opts: { event: string; data?: UmamiEventData }) {
+							if (!opts?.event) return;
+							node.setAttribute('data-umami-event', opts.event);
+							// strip any previous auto-applied payloads
+							for (const attr of Array.from(node.attributes)) {
+								if (attr.name.startsWith('data-umami-event-') && attr.name !== 'data-umami-event') {
+									node.removeAttribute(attr.name);
+								}
 							}
-							const target = e.currentTarget as HTMLElement;
-							const eventName = target.getAttribute('data-umami-event');
-							if (!eventName) return;
-							const data: UmamiEventData = {};
-							for (const attr of Array.from(target.attributes)) {
-								const match = attr.name.match(/^data-umami-event-(.+)$/);
-								if (match) data[match[1]] = attr.value;
+							if (opts.data) {
+								for (const [key, value] of Object.entries(opts.data)) {
+									if (value == null) continue;
+									node.setAttribute(\`data-umami-event-\${key}\`, String(value));
+								}
 							}
-							track(eventName, data);
-						};
+						}
+
+						applyOptions(options);
+
+						const handle = () => track(options.event, options.data);
 
 						node.addEventListener('click', handle);
 						return {
+							update(next: { event: string; data?: UmamiEventData }) {
+								options = next;
+								applyOptions(next);
+							},
 							destroy() {
 								node.removeEventListener('click', handle);
 							}
@@ -391,7 +402,7 @@ export default defineAddon({
 			`Set ${color.env('PUBLIC_UMAMI_SCRIPT_URL')} in ${color.path('.env')} if you self-host Umami (default: ${options.hostUrl}/script.js)`,
 			`Open ${color.path('src/app.html')} and replace ${color.env('%PUBLIC_UMAMI_WEBSITE_ID%')} with the value of ${color.env('PUBLIC_UMAMI_WEBSITE_ID')}`,
 			`Track events with ${color.command(`import { track } from '$lib/umami'; track('signup', { plan: 'pro' })`)}`,
-			`Or use the action ${color.command('<button use:trackByAttr data-umami-event="cta-click">…</button>')}`
+			`Or use the action ${color.command("<button use:trackByAttr={{ event: 'cta-click' }}>…</button>")}`
 		];
 
 		if (options.server) {

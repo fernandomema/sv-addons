@@ -104,23 +104,25 @@ Once the script tag is injected into `src/app.html`, Umami automatically records
 
 ### Declarative events with `use:trackByAttr`
 
+Pass the event name and optional payload as an object — the action applies the `data-umami-event` and `data-umami-event-{key}` attributes for you on mount, and forwards every click to `track()`.
+
 ```svelte
 <script>
   import { trackByAttr } from '$lib/umami';
 </script>
 
-<button use:trackByAttr data-umami-event="cta-click">Click me</button>
+<button use:trackByAttr={{ event: 'cta-click' }}>Click me</button>
 
 <!-- with extra event data -->
-<button
-  use:trackByAttr
-  data-umami-event="pricing-cta"
-  data-umami-event-plan="pro"
-  data-umami-event-source="hero"
->
+<button use:trackByAttr={{
+  event: 'pricing-cta',
+  data: { plan: 'pro', source: 'hero' }
+}}>
   Start free trial
 </button>
 ```
+
+The action also supports Svelte's reactive `update`, so changing the props automatically rewrites the underlying attributes and keeps the click handler pointing at the latest event.
 
 ### Override script attributes with `<Tracker />`
 
