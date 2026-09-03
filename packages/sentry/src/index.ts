@@ -96,7 +96,7 @@ export default defineAddon({
 
 		sv.file(
 			`src/hooks.server.${language}`,
-			transforms.script(({ ast, js }) => {
+			transforms.script(({ ast, comments, js }) => {
 				const hasSentryHandle = js.common.contains(ast, (node) => {
 					return (
 						node.type === 'CallExpression' &&
@@ -115,8 +115,8 @@ export default defineAddon({
 					js.kit.addHooksHandle(ast, {
 						language,
 						newHandleName: 'handleSentry',
-						handleContent: `sentryHandle(),`,
-						comments: undefined
+						handleContent: 'sentryHandle()',
+						comments
 					});
 				}
 			})
