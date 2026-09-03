@@ -1,6 +1,6 @@
 {
 	"name": "@fernando.mema/sv-sentry",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js",
@@ -22,7 +22,14 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"keywords": ["sv-add", "svelte", "sveltekit", "sentry", "error-tracking", "monitoring"],
+	"keywords": [
+		"sv-add",
+		"svelte",
+		"sveltekit",
+		"sentry",
+		"error-tracking",
+		"monitoring"
+	],
 	"peerDependencies": {
 		"sv": "^0.13.0"
 	},
