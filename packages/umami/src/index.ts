@@ -37,8 +37,8 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, language, file, directory, dependencyVersion }) => {
-		const env = defineEnv({ sv, cwd: process.cwd(), dependencyVersion });
+	run: ({ sv, options, language, file, directory, dependencyVersion, cwd }) => {
+		const env = defineEnv({ sv, cwd, dependencyVersion });
 
 		env.define({
 			name: 'PUBLIC_UMAMI_WEBSITE_ID',
@@ -269,7 +269,7 @@ export default defineAddon({
 
 		// 4. Extend src/app.d.ts with window.umami typing (only if file exists)
 		sv.file(
-			file.app,
+			'src/app.d.ts',
 			transforms.text(({ content }) => {
 				const text = content || '';
 				if (!text) return false; // app.d.ts may not exist in some templates
