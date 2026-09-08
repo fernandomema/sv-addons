@@ -131,15 +131,17 @@ describe('prisma addon (default: postgresql, no adapter)', () => {
 
 	it('creates a PrismaClient singleton without an adapter', () => {
 		const db = read(cwd(), 'src/lib/server/db.ts');
-		expect(db).toContain("from 'src/lib/generated/prisma/client'");
+		expect(db).toContain("from '../generated/prisma/client'");
 		expect(db).toContain('new PrismaClient()');
 		expect(db).not.toContain('@prisma/adapter-');
+		expect(db).not.toContain("from 'src/");
 	});
 
 	it('installs prisma 7.10+', () => {
 		const pkg = JSON.parse(read(cwd(), 'package.json'));
 		expect(pkg.devDependencies?.prisma).toMatch(/\^7\./);
 		expect(pkg.dependencies?.prisma).toMatch(/\^7\./);
+		expect(pkg.dependencies?.['@prisma/client']).toMatch(/\^7\./);
 	});
 
 	it('adds the db:* scripts and wires build to run prisma generate', () => {

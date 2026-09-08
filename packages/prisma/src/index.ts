@@ -44,6 +44,15 @@ export default defineAddon({
 	run: ({ sv, options, language, file, directory, dependencyVersion }) => {
 		const env = defineEnv({ sv, cwd: process.cwd(), dependencyVersion });
 
+		// Resolve the prisma client import specifier relative to src/lib/server/db.*
+		// (where the file lives). Default `output` is `src/lib/generated/prisma`,
+		// so from `src/lib/server/` the import must be `../generated/prisma/client`.
+		const libPrefix = directory.lib.replace(/\/$/, '');
+		const clientOutput = options.output.startsWith(`${libPrefix}/`)
+			? `../${options.output.slice(libPrefix.length + 1)}`
+			: options.output;
+		const clientSpecifier = `${clientOutput}/client`;
+
 		env.define({
 			name: 'DATABASE_URL',
 			description: 'Database connection string. See https://www.prisma.io/docs/orm/database-connection-urls'
@@ -56,6 +65,11 @@ export default defineAddon({
 		// the stable 7.x line so installs are reliable.
 		sv.dependency('prisma', '^7.10.0');
 		sv.devDependency('prisma', '^7.10.0');
+		// Prisma 7's `prisma-client` generator emits imports against
+		// `@prisma/client/runtime/client` but the `prisma` package alone does
+		// not include that subpath. We must install `@prisma/client` as a
+		// regular dependency so the generated client resolves at runtime.
+		sv.dependency('@prisma/client', '^7.10.0');
 
 		if (options.adapter === 'pg') {
 			sv.dependency('@prisma/adapter-pg', '^7.10.0');
@@ -124,7 +138,7 @@ export default defineAddon({
 
 				if (options.adapter === 'pg') {
 					return dedent`
-						import { PrismaClient } from '${options.output}/client';
+						import { PrismaClient } from '${clientSpecifier}';
 						import { PrismaPg } from '@prisma/adapter-pg';
 						import { dev } from '$app/environment';
 						import { DATABASE_URL } from '$env/static/private';
@@ -146,7 +160,7 @@ export default defineAddon({
 
 				if (options.adapter === 'mariadb') {
 					return dedent`
-						import { PrismaClient } from '${options.output}/client';
+						import { PrismaClient } from '${clientSpecifier}';
 						import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 						import { dev } from '$app/environment';
 						import { DATABASE_URL } from '$env/static/private';
@@ -168,7 +182,7 @@ export default defineAddon({
 
 				if (options.adapter === 'libsql') {
 					return dedent`
-						import { PrismaClient } from '${options.output}/client';
+						import { PrismaClient } from '${clientSpecifier}';
 						import { PrismaLibSql } from '@prisma/adapter-libsql';
 						import { dev } from '$app/environment';
 						import { DATABASE_URL, TURSO_AUTH_TOKEN } from '$env/static/private';
@@ -192,7 +206,7 @@ export default defineAddon({
 				}
 
 				return dedent`
-					import { PrismaClient } from '${options.output}/client';
+					import { PrismaClient } from '${clientSpecifier}';
 					import { dev } from '$app/environment';
 
 					const globalForPrisma = globalThis as unknown as {
