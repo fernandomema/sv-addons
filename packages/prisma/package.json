@@ -1,6 +1,6 @@
 {
 	"name": "@fernando.mema/sv-prisma",
-	"version": "0.1.1",
+	"version": "0.2.2",
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js",
@@ -22,7 +22,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"keywords": ["sv-add", "svelte", "sveltekit", "prisma", "orm", "database"],
+	"keywords": ["sv-add", "svelte", "sveltekit", "prisma", "orm", "database", "prisma-8"],
 	"peerDependencies": {
 		"sv": "^0.13.0"
 	},

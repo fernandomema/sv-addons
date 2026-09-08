@@ -8,8 +8,10 @@
 <div align="center">
   <h3>@fernando.mema/sv-prisma</h3>
   <p>
-    Prisma ORM setup for SvelteKit with PostgreSQL, MySQL, SQLite, and driver adapter support
+    Prisma ORM 7.10+ setup for SvelteKit with PostgreSQL, MySQL/MariaDB, SQLite, and driver adapter support
   </p>
+
+  > **Note:** Prisma 8 is currently in RC. This addon targets the stable 7.10 line to avoid RC-only peer conflicts. The classic `prisma-client` generator + driver-adapter flow used here is identical across 7.x and 8, so generated code is forward-compatible.
 
   <a href="https://www.prisma.io/">View Prisma Docs</a>
   &middot;
@@ -21,13 +23,16 @@
 <!-- ABOUT -->
 ## About
 
-This addon sets up [Prisma](https://www.prisma.io/) in your SvelteKit project with:
+This addon sets up [Prisma](https://www.prisma.io/) **v7.10** in your SvelteKit project with:
 
-- Prisma schema with configurable database dialect
+- Prisma schema using the `prisma-client` generator (the modern, `output`-required generator)
 - Prisma client singleton with dev hot-reload support
+- `prisma.config.ts` wired to `dotenv` + `env()` helper
 - Database scripts (generate, push, migrate, studio)
 - Environment variable configuration
-- Optional driver adapter support (PostgreSQL, MySQL, LibSQL)
+- Optional driver adapter support (PostgreSQL via `pg`, MySQL/MariaDB via `mariadb`, LibSQL/Turso)
+
+> **Note:** Prisma 8 is currently in RC and pulls beta transitive dependencies (e.g. `alchemy`) that break `npm install` in some environments due to peer conflicts with `vite`. This addon targets the latest stable 7.10 line until Prisma 8 ships GA. The classic `prisma-client` generator + driver-adapter flow works identically on both versions, so nothing in your generated code needs to change when you bump later.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -44,9 +49,8 @@ npx sv add @fernandomema/sv-prisma
 ## Options
 
 | Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `dialect` | select | `postgresql` | Database dialect: PostgreSQL, MySQL, or SQLite |
-| `adapter` | select | `none` | Driver adapter: none, pg, mysql, or libsql |
+|--------|------|---------|-------------|/MariaDB, or SQLite |
+| `adapter` | select | `none` | Driver adapter: none, pg, mariadb, or libsql |
 | `output` | string | `src/lib/generated/prisma` | Prisma client output path |
 
 ### Adapter Options
@@ -54,8 +58,9 @@ npx sv add @fernandomema/sv-prisma
 | Adapter | Use Case |
 |---------|----------|
 | None | Standard Prisma client (recommended for most cases) |
-| `@prisma/adapter-pg` | PostgreSQL driver adapter for connection pooling (Neon, SeaweedFS) |
-| `@prisma/adapter-mysql` | MySQL driver adapter |
+| `@prisma/adapter-pg` | PostgreSQL driver adapter for connection pooling (Neon, etc.) |
+| `@prisma/adapter-mariadb` | MySQL/MariaDB driver adapter (uses the official `mariadb` driver) |
+| `@prisma/adapter-libsql` | LibSQL/Turso driver adapter (optional `TURSO_AUTH_TOKEN`)
 | `@prisma/adapter-libsql` | LibSQL/Turso driver adapter |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -67,16 +72,16 @@ npx sv add @fernandomema/sv-prisma
 
 | File | Purpose |
 |------|---------|
-| `prisma/schema.prisma` | Prisma schema with generator and datasource |
-| `prisma.config.ts` | Prisma 7 configuration file |
+| `prisma/schema.prisma` | Prisma schema using the `prisma-client` generator with required `output` |
+| `prisma.config.ts` | Prisma 7+ configuration file (`defineConfig` + `env('DATABASE_URL')`) |
 | `src/lib/server/db.ts` | Prisma client singleton with global caching |
 
 ### Files Modified
 
 | File | Changes |
 |------|---------|
-| `.env` | Adds `DATABASE_URL` |
-| `.env.example` | Adds `DATABASE_URL` template |
+| `.env` | Adds `DATABASE_URL` (and `TURSO_AUTH_TOKEN` when using libsql) |
+| `.env.example` | Adds `DATABASE_URL` template (and `TURSO_AUTH_TOKEN` when using libsql) |
 | `package.json` | Adds scripts: `db:generate`, `db:push`, `db:migrate`, `db:studio` |
 
 ### Scripts Added

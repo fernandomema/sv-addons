@@ -10,21 +10,21 @@ const options = defineAddonOptions()
 		default: 'postgresql',
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
-			{ value: 'mysql', label: 'MySQL' },
+			{ value: 'mysql', label: 'MySQL / MariaDB' },
 			{ value: 'sqlite', label: 'SQLite' }
 		]
 	})
 	.add('adapter', {
-		question: 'Which Prisma adapter would you like to use?',
+		question: 'Which Prisma driver adapter would you like to use?',
 		type: 'select',
 		default: 'none',
 		options: [
 			{ value: 'none', label: 'None (standard client)' },
 			{ value: 'pg', label: '@prisma/adapter-pg (PostgreSQL driver adapter)' },
-			{ value: 'mysql', label: '@prisma/adapter-mysql (MySQL driver adapter)' },
-			{ value: 'libsql', label: '@prisma/adapter-libsql (LibSQL/Turso driver adapter)' }
+			{ value: 'mariadb', label: '@prisma/adapter-mariadb (MySQL/MariaDB driver adapter)' },
+			{ value: 'libsql', label: '@prisma/adapter-libsql (LibSQL / Turso driver adapter)' }
 		],
-		condition: ({ dialect }) => dialect === 'postgresql'
+		condition: ({ dialect }) => dialect === 'postgresql' || dialect === 'mysql'
 	})
 	.add('output', {
 		question: 'Where should the Prisma client be generated?',
@@ -49,23 +49,30 @@ export default defineAddon({
 			description: 'Database connection string. See https://www.prisma.io/docs/orm/database-connection-urls'
 		});
 
-		sv.dependency('prisma', '^6.0.0');
-		sv.devDependency('prisma', '^6.0.0');
+		// Prisma 7.10 is the latest GA line for the classic `prisma-client`
+		// generator + driver-adapter setup this addon scaffolds. Prisma 8 is
+		// currently in RC and drags in beta transitive deps (e.g. alchemy) that
+		// break `npm install` in some environments via peer conflicts; we pin to
+		// the stable 7.x line so installs are reliable.
+		sv.dependency('prisma', '^7.10.0');
+		sv.devDependency('prisma', '^7.10.0');
 
 		if (options.adapter === 'pg') {
-			sv.dependency('@prisma/adapter-pg', '^6.0.0');
-			sv.dependency('pg', '^8.0.0');
-			sv.devDependency('@types/pg', '^8.0.0');
-		} else if (options.adapter === 'mysql') {
-			sv.dependency('@prisma/adapter-mysql', '^6.0.0');
-			sv.dependency('mysql2', '^3.0.0');
+			sv.dependency('@prisma/adapter-pg', '^7.10.0');
+		} else if (options.adapter === 'mariadb') {
+			sv.dependency('@prisma/adapter-mariadb', '^7.10.0');
+			sv.dependency('mariadb', '^3.0.0');
 		} else if (options.adapter === 'libsql') {
-			sv.dependency('@prisma/adapter-libsql', '^6.0.0');
+			sv.dependency('@prisma/adapter-libsql', '^7.10.0');
 			sv.dependency('@libsql/client', '^0.14.0');
+			env.define({
+				name: 'TURSO_AUTH_TOKEN',
+				description: 'Optional auth token for Turso (leave empty for local libSQL files)'
+			});
 		}
 
-		sv.file('.env', generateEnv(false));
-		sv.file('.env.example', generateEnv(true));
+		sv.file('.env', generateEnv(false, options.adapter === 'libsql'));
+		sv.file('.env.example', generateEnv(true, options.adapter === 'libsql'));
 
 		sv.file(
 			`prisma/schema.prisma`,
@@ -94,16 +101,16 @@ export default defineAddon({
 			transforms.text(({ content }) => {
 				if (content) return false;
 				return dedent`
-					import "dotenv/config";
-					import { defineConfig } from "prisma/config";
+					import 'dotenv/config';
+					import { defineConfig, env } from 'prisma/config';
 
 					export default defineConfig({
-						schema: "prisma/schema.prisma",
+						schema: 'prisma/schema.prisma',
 						migrations: {
-							path: "prisma/migrations",
+							path: 'prisma/migrations',
 						},
 						datasource: {
-							url: process.env["DATABASE_URL"],
+							url: env('DATABASE_URL'),
 						},
 					});
 				`;
@@ -127,7 +134,54 @@ export default defineAddon({
 						};
 
 						function createPrismaClient() {
-							const adapter = new PrismaPg(DATABASE_URL);
+							const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+							return new PrismaClient({ adapter });
+						}
+
+						export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+						if (dev) globalForPrisma.prisma = prisma;
+					`;
+				}
+
+				if (options.adapter === 'mariadb') {
+					return dedent`
+						import { PrismaClient } from '${options.output}/client';
+						import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+						import { dev } from '$app/environment';
+						import { DATABASE_URL } from '$env/static/private';
+
+						const globalForPrisma = globalThis as unknown as {
+							prisma: PrismaClient | undefined
+						};
+
+						function createPrismaClient() {
+							const adapter = new PrismaMariaDb({ url: DATABASE_URL });
+							return new PrismaClient({ adapter });
+						}
+
+						export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+						if (dev) globalForPrisma.prisma = prisma;
+					`;
+				}
+
+				if (options.adapter === 'libsql') {
+					return dedent`
+						import { PrismaClient } from '${options.output}/client';
+						import { PrismaLibSql } from '@prisma/adapter-libsql';
+						import { dev } from '$app/environment';
+						import { DATABASE_URL, TURSO_AUTH_TOKEN } from '$env/static/private';
+
+						const globalForPrisma = globalThis as unknown as {
+							prisma: PrismaClient | undefined
+						};
+
+						function createPrismaClient() {
+							const adapter = new PrismaLibSql({
+								url: DATABASE_URL,
+								authToken: TURSO_AUTH_TOKEN || undefined
+							});
 							return new PrismaClient({ adapter });
 						}
 
@@ -181,16 +235,30 @@ export default defineAddon({
 	}
 });
 
-type GenerateEnv = (isExample: boolean) => (content: string) => string;
-const generateEnv: GenerateEnv = (isExample) => (content) => {
+type GenerateEnv = (isExample: boolean, includeTursoToken: boolean) => (content: string) => string;
+const generateEnv: GenerateEnv = (isExample, includeTursoToken) => (content) => {
 	const text = content || '';
 	const lines = text.split('\n');
 	const hasDbUrl = lines.some((l) => l.startsWith('DATABASE_URL='));
+	const hasTursoToken = lines.some((l) => l.startsWith('TURSO_AUTH_TOKEN='));
 
+	const dbPlaceholder = isExample
+		? '""'
+		: '"postgres://postgres:postgres@localhost:51214/template1?sslmode=disable&connection_limit=10&connect_timeout=0&max_idle_connection_lifetime=0&pool_timeout=0&socket_timeout=0"';
+	const tursoPlaceholder = '""';
+
+	const additions: string[] = [];
 	if (!hasDbUrl) {
-		const value = isExample ? '""' : '"postgresql://user:password@localhost:5432/mydb?schema=public"';
-		const separator = lines.length > 0 && lines[lines.length - 1] !== '' ? '\n' : '';
-		return `${text}${separator}# Database\nDATABASE_URL=${value}\n`;
+		additions.push('# Database');
+		additions.push(`DATABASE_URL=${dbPlaceholder}`);
 	}
-	return text;
+	if (includeTursoToken && !hasTursoToken) {
+		if (additions.length === 0) additions.push('# Turso (optional)');
+		additions.push(`TURSO_AUTH_TOKEN=${tursoPlaceholder}`);
+	}
+
+	if (additions.length === 0) return text;
+
+	const separator = lines.length > 0 && lines[lines.length - 1] !== '' ? '\n' : '';
+	return `${text}${separator}${additions.join('\n')}\n`;
 };
