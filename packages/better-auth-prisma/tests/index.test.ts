@@ -71,6 +71,8 @@ describe('better-auth-prisma addon (kit-ts)', () => {
 		expect(f).toContain('betterAuth');
 		expect(f).toContain('prismaAdapter');
 		expect(f).toContain('postgresql');
+		expect(f).toContain('import { prisma } from "$lib/server/db";');
+		expect(f).not.toContain('src/lib/');
 	});
 
 	it('generates valid +page.svelte files (no placeholder artifacts like $<{ ... })', () => {
@@ -103,6 +105,13 @@ describe('better-auth-prisma addon (kit-ts)', () => {
 	it('adds auth:schema script to package.json', () => {
 		const pkg = JSON.parse(fs.readFileSync(path.resolve(cwd(), 'package.json'), 'utf8'));
 		expect(pkg.scripts['auth:schema']).toContain('auth generate');
+	});
+
+	it('wires hooks.server.ts with $lib/server/auth (not $lib/lib/server/auth)', () => {
+		const f = fs.readFileSync(path.resolve(cwd(), 'src/hooks.server.ts'), 'utf8');
+		expect(f).toContain("from '$lib/server/auth'");
+		expect(f).not.toContain('$lib/lib/');
+		expect(f).toContain('svelteKitHandler');
 	});
 });
 

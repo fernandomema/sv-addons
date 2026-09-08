@@ -92,7 +92,7 @@ export default defineAddon({
 					import { prismaAdapter } from "better-auth/adapters/prisma";
 					import { sveltekitCookies } from "better-auth/svelte-kit";${adminPlugin}
 					import { getRequestEvent } from "$app/server";
-					import { prisma } from "${dbPath.replace(`.${language}`, '')}";
+					import { prisma } from "$lib/server/db";
 
 					export const auth = betterAuth({
 						database: prismaAdapter(prisma, {
@@ -182,7 +182,7 @@ export default defineAddon({
 				});
 				js.imports.addNamed(ast, {
 					imports: ['auth'],
-					from: `${directory.lib.replace('src/', '$lib/')}/server/auth`
+					from: '$lib/server/auth'
 				});
 				env.importEnv(ast, js, ['building']);
 
