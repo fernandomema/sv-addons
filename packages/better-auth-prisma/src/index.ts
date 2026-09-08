@@ -96,7 +96,7 @@ export default defineAddon({
 
 					export const auth = betterAuth({
 						database: prismaAdapter(prisma, {
-							provider: "${dependencyVersion('prisma') ? 'postgresql' : 'postgresql'}"
+							provider: "postgresql"
 						}),
 						emailAndPassword: {
 							enabled: true
@@ -312,7 +312,7 @@ export default defineAddon({
 						import { enhance } from '$app/forms';
 						import type { ActionData } from './$types';
 
-						let { form }$<{ form: ActionData } = $props();
+						let { form }: { form: ActionData } = $props();
 					</script>
 
 					<h1>Login</h1>
@@ -371,7 +371,7 @@ export default defineAddon({
 						import { enhance } from '$app/forms';
 						import type { PageServerData } from './$types';
 
-						let { data }$<{ data: PageServerData } = $props();
+						let { data }: { data: PageServerData } = $props();
 					</script>
 
 					<h1>Hi, {data.user.name}!</h1>
